@@ -1,39 +1,39 @@
-// ============================================================
-// PatternShift Cipher v1 — Vercel Serverless Endpoint
-// ============================================================
+export default async function handler(req, res) {
+  const TARGET_GITHUB_URL = "https://raw.githubusercontent.com/cocamanloal-hue/Tt/refs/heads/main/Poop";
 
-const SECRET   = "Xk9$mPq2L7vRzN4wT8bC";      // 🔁 MUST match client EXACTLY
-const ALPHABET = "QWEasdzxRTYuiophjkASDFG741LMNBV852lcXCvbnm963POIuyt-_qwer";
-const GITHUB_RAW = "https://raw.githubusercontent.com/cocamanloal-hue/Tt/refs/heads/main/Poop";
+  try {
+    const response = await fetch(TARGET_GITHUB_URL);
+    if (!response.ok) {
+      return res.status(500).send("Error loading source script");
+    }
 
-// --- Custom Base64 encoder (shuffled alphabet) --------------
-function b64enc(bytes) {
-  let out = "";
-  for (let i = 0; i < bytes.length; i += 3) {
-    const b1 = bytes[i] || 0, b2 = bytes[i+1] || 0, b3 = bytes[i+2] || 0;
-    const n = (b1 << 16) | (b2 << 8) | b3;
-    out += ALPHABET[(n >> 18) & 0x3F];
-    out += ALPHABET[(n >> 12) & 0x3F];
-    out += ALPHABET[(n >> 6)  & 0x3F];
-    out += ALPHABET[ n        & 0x3F];
+    const rawScript = await response.text();
+    const encodedBytes = [];
+    const seed = 42;
+
+    for (let i = 0; i < rawScript.length; i++) {
+      const charCode = rawScript.charCodeAt(i);
+
+      // Layer 1: Index-dependent character shift (makes identical letters output differently)
+      const layer1 = (charCode + (i * 7) + seed) % 256;
+
+      // Layer 2: Positional XOR mask pattern
+      const layer2 = layer1 ^ ((i % 13) + 101);
+
+      encodedBytes.push(layer2);
+    }
+
+    // Layer 3: Convert resulting byte array to Base64
+    const buffer = Buffer.from(encodedBytes);
+    const finalCiphertext = buffer.toString("base64");
+
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    return res.status(200).send(finalCiphertext);
+  } catch (err) {
+    return res.status(500).send("Internal Server Error");
   }
-  return out;
 }
-
-// --- PatternShift encrypt -----------------------------------
-function encrypt(plain) {
-  const seed = Math.floor(Math.random() * 0xFFFFFF); // changes EVERY request
-  const enc  = [];
-  let sum = 0;
-
-  for (let i = 0; i < plain.length; i++) {
-    const p = plain.charCodeAt(i);
-    sum = (sum + p) % 0xFFFFFF;
-
-    // Rolling key: depends on SECRET + SEED + POSITION
-    const keyByte = (SECRET.charCodeAt(i % SECRET.length) + seed + i * 7) & 0xFF;
-
-    // XOR + position shift
     const xored = p ^ keyByte;
     const e     = (xored + i * 3) & 0xFF;
     enc.push(e);
