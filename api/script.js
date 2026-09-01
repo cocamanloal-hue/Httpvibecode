@@ -4,7 +4,7 @@
 
 const SECRET   = "Xk9$mPq2L7vRzN4wT8bC";      // 🔁 MUST match client EXACTLY
 const ALPHABET = "QWEasdzxRTYuiophjkASDFG741LMNBV852lcXCvbnm963POIuyt-_qwer";
-const GITHUB_RAW = "https://raw.githubusercontent.com/YOURNAME/YOURREPO/main/script.lua";
+const GITHUB_RAW = "https://raw.githubusercontent.com/cocamanloal-hue/Tt/refs/heads/main/Poop";
 
 // --- Custom Base64 encoder (shuffled alphabet) --------------
 function b64enc(bytes) {
