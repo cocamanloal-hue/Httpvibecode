@@ -1,5 +1,6 @@
 {
-  "name": "protected-loader",
+  "name": "roblox-script-protector",
   "version": "1.0.0",
-  "type": "module"
+  "private": true,
+  "dependencies": {}
 }
