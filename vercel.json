@@ -1,9 +1,8 @@
 {
-  "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/protect",
-      "dest": "/api/protect.js"
+      "source": "/",
+      "destination": "/api/protect"
     }
   ]
 }
