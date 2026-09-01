@@ -1,39 +1,44 @@
 module.exports = async (req, res) => {
   const TARGET_GITHUB_URL = "https://raw.githubusercontent.com/cocamanloal-hue/Tt/refs/heads/main/Poop";
 
-  // Access Control & Browser Block
-  const userAgent = req.headers["user-agent"] || "";
-  const hwid = req.headers["x-hwid"] || req.query.hwid;
-  const fingerprint = req.headers["x-fingerprint"] || req.query.fingerprint;
+  // Check headers to block web browsers and direct hits
+  const userAgent = (req.headers['user-agent'] || '').toLowerCase();
+  const hwid = req.headers['x-hwid'];
+  const fingerprint = req.headers['x-fingerprint'];
 
-  const isBrowser = userAgent.includes("Mozilla") || userAgent.includes("Chrome") || userAgent.includes("Safari");
-
-  if (isBrowser || !hwid || !fingerprint) {
+  if (!hwid || !fingerprint || userAgent.includes("mozilla") || userAgent.includes("chrome") || userAgent.includes("safari")) {
     res.setHeader("Content-Type", "text/plain");
-    return res.status(200).send("u don't have access");
+    return res.status(403).send("u don't have access ok");
   }
 
   try {
     const response = await fetch(TARGET_GITHUB_URL);
     if (!response.ok) {
-      res.setHeader("Content-Type", "text/plain");
-      return res.status(200).send("u don't have access");
+      return res.status(500).send("Error fetching script source");
     }
 
     const rawScript = await response.text();
-    const encodedBytes = [];
-    const seed = 42;
+    let cipherOutput = "";
 
+    // Positional multi-layer character transformation
     for (let i = 0; i < rawScript.length; i++) {
       const charCode = rawScript.charCodeAt(i);
 
-      // Layer 1: Positional character shift
-      const layer1 = (charCode + (i * 7) + seed) % 256;
+      // Layer 1 & 2: Positional index shift + XOR transformation
+      const shifted = (charCode + (i * 13) + 37) % 256;
+      const xorByte = shifted ^ ((i % 17) + 89);
 
-      // Layer 2: Positional XOR mask
-      const layer2 = layer1 ^ ((i % 13) + 101);
+      // Final Layer: Hex encoding (guarantees valid UTF-8/ASCII)
+      cipherOutput += xorByte.toString(16).padStart(2, '0');
+    }
 
-      encodedBytes.push(layer2);
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    return res.status(200).send(cipherOutput);
+  } catch (err) {
+    return res.status(500).send("Internal Server Error");
+  }
+};
     }
 
     // Layer 3: Convert byte array to Base64 (Prevents Luau UTF-8 errors)
